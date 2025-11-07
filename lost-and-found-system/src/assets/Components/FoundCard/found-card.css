@@ -1,0 +1,48 @@
+.found-card {
+  width: 280px;
+  background-color: #c2c2c2;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin: 1rem;
+  cursor: pointer;
+}
+
+.found-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+
+.found-card-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+
+.found-card-info {
+  padding: 12px;
+  text-align: left;
+}
+
+.found-card-info h3 {
+  margin: 5px 0;
+  font-size: 1.1rem;
+  color: #222;
+}
+
+.found-card-info p {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+
+.found-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+}

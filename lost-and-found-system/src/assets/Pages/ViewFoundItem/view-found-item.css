@@ -1,0 +1,113 @@
+.view-found-container {
+    width: 96%;
+    padding: 20px;
+    box-sizing: border-box;
+    margin: 2rem auto;
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.291);
+    align-self: center;
+    
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.search {
+    flex: 1 1 260px;
+    min-width: 220px;
+    background: #fff;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 10px 14px;
+    outline: none;
+    font-size: 14px;
+}
+
+.found-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: flex-start;
+}
+
+/* overlay - keep full-screen but add padding for small screens */
+.item-details-overlay {
+    position: fixed;
+    inset: 0; /* shorthand for top:0; right:0; bottom:0; left:0; */
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px; /* avoid touching screen edges on small devices */
+    box-sizing: border-box;
+}
+
+/* responsive modal/card */
+.item-details {
+    background: #fff;
+    border-radius: 10px;
+    padding: clamp(12px, 2.5vw, 24px);
+    width: clamp(280px, 90%, 480px); /* fluid between 280px and 480px using viewport */
+    max-width: 100%;
+    max-height: 90vh; /* keep it inside viewport */
+    overflow-y: auto; /* allow scrolling when content is tall */
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-sizing: border-box;
+}
+
+/* image scales and doesn't force modal overflow */
+.details-image {
+    width: 100%;
+    height: auto;
+    max-height: 40vh;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+/* buttons adapt to available width */
+.item-details button {
+    margin-top: 10px;
+    padding: 8px 14px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.item-details button:hover {
+    background: #555;
+}
+
+
+.notice {
+  background-color: #efefef; /* Light blue hint */
+  border-left: 5px solid #00994d; /* Google-style blue accent */
+  padding: 15px 20px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  width: fit-content;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+.notice p {
+  color: #333;
+  margin: 0;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.empty-state {
+  width: 100%;
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}

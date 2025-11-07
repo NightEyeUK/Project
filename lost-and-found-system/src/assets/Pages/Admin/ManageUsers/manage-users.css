@@ -1,0 +1,278 @@
+.admin-page {
+    min-height: 100vh;
+    background: #f4f4f4;
+    padding: 24px;
+    color: #111;
+}
+
+.admin-page h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+}
+
+
+
+.table-card {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead th {
+    text-align: left;
+    font-weight: 600;
+    background: #fafafa;
+    color: #333;
+    font-size: 14px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+tbody td {
+    font-size: 14px;
+    color: #333;
+    padding: 12px 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    vertical-align: middle;
+}
+
+tbody tr:hover {
+    background: #f9fbff;
+}
+
+.row-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-sm {
+    appearance: none;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btn-sm:hover {
+    background: #fafafa;
+}
+
+.btn-sm.danger {
+    background: #ff4d4f;
+    color: #fff;
+    border-color: #ff4d4f;
+}
+
+.btn-sm.danger:hover {
+    background: #e64547;
+}
+
+@media (max-width:760px) {
+    thead {
+        display: none;
+    }
+
+    table,
+    tbody,
+    tr,
+    td {
+        display: block;
+        width: 100%;
+    }
+
+    tbody tr {
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    tbody td {
+        padding: 10px 16px;
+    }
+
+    tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #555;
+        display: block;
+        margin-bottom: 4px;
+    }
+}
+
+/* add user form */
+.mu-form {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.mu-form h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.mu-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.mu-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1 1 220px;
+    min-width: 220px;
+}
+
+.mu-field input,
+.mu-field select {
+    padding: 8px 10px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.btn-primary {
+    background: #2f6fff;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: #255ded;
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.search {
+    flex: 1 1 260px;
+    min-width: 220px;
+    background: #fff;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 10px 14px;
+    outline: none;
+    font-size: 14px;
+}
+
+/* Modal styles for edit */
+.mf-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 1000;
+}
+
+.mf-modal-content {
+    background: #fff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 560px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.mf-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.mf-close {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.mf-modal-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.mf-modal-actions {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    justify-content: flex-end;
+}
+
+.btn-secondary {
+    background: #fff;
+    color: #333;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: #fafafa;
+}
+
+/* Header with button */
+.mu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+/* Alert spacing */
+.alert {
+    margin-bottom: 12px;
+}
+
+/* Small text helper */
+.mu-field small {
+    color: #666;
+}
+
+/* No actions text */
+.no-actions {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+/* Empty table cell */
+.empty-table-cell {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+/* Uses shared ui.css */
