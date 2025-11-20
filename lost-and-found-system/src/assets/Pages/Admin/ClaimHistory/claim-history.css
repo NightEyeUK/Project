@@ -1,8 +1,10 @@
 .admin-page {
     min-height: 100vh;
     background: #f4f4f4;
-    padding: 24px;
+    padding: clamp(16px, 3vw, 24px);
     color: #111;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .admin-page h2 {
@@ -90,13 +92,29 @@ tbody tr:hover {
 
 .search {
     flex: 1 1 260px;
-    min-width: 220px;
+    min-width: 0;
     background: #fff;
     border-radius: 999px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     padding: 10px 14px;
     outline: none;
     font-size: 14px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .search {
+        min-width: 0;
+        width: 100%;
+    }
+    
+    .table-card {
+        overflow-x: auto;
+    }
+    
+    table {
+        min-width: 600px;
+    }
 }
 
 .btn {

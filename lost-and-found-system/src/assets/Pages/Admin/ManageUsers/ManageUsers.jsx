@@ -1,10 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './manage-users.css';
-import {app,auth}  from '../../../../firebase.js';
-import { getDatabase, ref, onValue, push, update, get } from 'firebase/database';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { onAuthStateChanged } from 'firebase/auth';
+import { app, auth, secondaryAuth } from '../../../../firebase.js';
+import { getDatabase, ref, onValue, update, get, set, runTransaction } from 'firebase/database';
+import { createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { logAction } from '../../../../utils/logAction';
+
+async function reserveUserId(db) {
+    const counterRef = ref(db, 'counters/users');
+    const result = await runTransaction(counterRef, (currentValue) => {
+        if (typeof currentValue !== 'number' || Number.isNaN(currentValue) || currentValue < 0) {
+            return 1;
+        }
+        return currentValue + 1;
+    });
+
+    if (!result.committed) {
+        throw new Error('Unable to reserve a new User ID. Please try again.');
+    }
+
+    const nextNumber = result.snapshot.val();
+    return `User${String(nextNumber).padStart(3, '0')}`;
+}
 
 export default function ManageUsers() {
     const [userData, setUserData] = useState(null);
@@ -56,11 +72,14 @@ export default function ManageUsers() {
             if (data) {
                 const usersList = Object.entries(data).map(([id, value]) => ({
                     id,
+                    displayId: value.customId || id,
                     name: value.name || '',
                     email: value.email || '',
                     birthday: value.birthday || '',
                     role: value.role || 'User',
                     status: value.status || 'Active',
+                    profileLink: value.profileLink || '',
+                    profileInitials: value.profileInitials || getInitials(value.name || ''),
                 }));
                 setUsers(usersList);
             } else {
@@ -77,7 +96,8 @@ export default function ManageUsers() {
             (u) =>
                 u.name.toLowerCase().includes(query) ||
                 u.email.toLowerCase().includes(query) ||
-                (u.role || '').toLowerCase().includes(query)
+                (u.role || '').toLowerCase().includes(query) ||
+                ((u.displayId || u.id || '').toLowerCase().includes(query))
         );
     }, [users, searchQuery]);
 
@@ -96,6 +116,16 @@ export default function ManageUsers() {
         return birthdayStr;
     }
 
+    // Helper function to get initials from name
+    function getInitials(name) {
+        if (!name) return "U";
+        const parts = name.trim().split(/\s+/);
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+    }
+
     async function addUser() {
         if (!isAdmin) {
             setAddErrorMsg('Only administrators can add users.');
@@ -111,34 +141,43 @@ export default function ManageUsers() {
             setAddErrorMsg('User must be at least 18 years old.');
             return;
         }
-        
-        const auth = getAuth(app);
         const db = getDatabase(app);
         
         try {
             // Create user in Firebase Auth
             const defaultPassword = defaultPasswordFromBirthday(form.birthday);
-            const userCredential = await createUserWithEmailAndPassword(auth, form.email, defaultPassword);
+            await createUserWithEmailAndPassword(secondaryAuth, form.email, defaultPassword);
+            await signOut(secondaryAuth);
             
-            // Add user to database WITH passwordChanged flag
-            const usersRef = ref(db, 'users');
-            await push(usersRef, {
+            // Add user to database WITH passwordChanged flag and profile placeholder
+            const profileInitials = getInitials(form.name);
+            const formattedId = await reserveUserId(db);
+            const userRef = ref(db, `users/${formattedId}`);
+            await set(userRef, {
+                customId: formattedId,
                 name: form.name,
                 email: form.email,
                 birthday: form.birthday,
                 role: form.role,
                 status: form.status,
                 passwordChanged: false,  // Force password change on first login
+                profileInitials: profileInitials, // Store initials for placeholder
+                profileLink: '', // Empty by default, can be set later
                 createdAt: new Date().toISOString()
             });
             
             await logAction('Added user', form.name, `Email: ${form.email}, Role: ${form.role}, Status: ${form.status}`);
             setForm({ name: '', email: '', birthday: '', role: 'User', status: 'Active' });
-            setAddSuccessMsg('User added successfully.');
+            setAddSuccessMsg(`User added successfully with ID ${formattedId}.`);
             setAddErrorMsg('');
             // Keep form visible so user sees success message
         } catch (error) {
             console.error('Error adding user:', error);
+            try {
+                await signOut(secondaryAuth);
+            } catch (signOutError) {
+                console.warn('Unable to clear secondary auth session:', signOutError);
+            }
             setAddErrorMsg(`Failed to add user: ${error.message}`);
             setAddSuccessMsg('');
         }
@@ -156,6 +195,8 @@ export default function ManageUsers() {
             birthday: user.birthday || '',
             role: user.role,
             status: user.status,
+            profileLink: user.profileLink || '',
+            profileInitials: user.profileInitials || getInitials(user.name || ''),
         });
         setErrorMsg('');
         setSuccessMsg('');
@@ -216,6 +257,12 @@ export default function ManageUsers() {
             birthday: editForm.birthday,
             status: editForm.status,
         };
+
+        // Update profile initials if name changed
+        const nameChanged = (editingUser.name || '') !== (editForm.name || '');
+        if (nameChanged) {
+            updateData.profileInitials = getInitials(editForm.name);
+        }
 
         // If birthday changed, force password change on next login
         const birthdayChanged = (editingUser.birthday || '') !== (editForm.birthday || '');
@@ -331,7 +378,7 @@ export default function ManageUsers() {
                         {filteredUsers.length > 0 ? (
                             filteredUsers.map(u => (
                                 <tr key={u.id}>
-                                    <td data-label="ID">{u.id}</td>
+                                    <td data-label="ID">{u.displayId || u.id}</td>
                                     <td data-label="Name">{u.name}</td>
                                     <td data-label="Email">{u.email}</td>
                                     <td data-label="Role">{u.role}</td>
@@ -374,6 +421,32 @@ export default function ManageUsers() {
                             {successMsg && (
                                 <div className="alert alert-success">{successMsg}</div>
                             )}
+                            
+                            {/* Profile Picture Display (Non-editable) */}
+                            <div className="mu-profile-section">
+                                <div className="mu-profile-picture-container">
+                                    {editForm.profileLink ? (
+                                        <img
+                                            src={editForm.profileLink}
+                                            alt={editForm.name}
+                                            className="mu-profile-picture"
+                                            onError={(e) => {
+                                                e.target.style.display = "none";
+                                                e.target.nextSibling.style.display = "flex";
+                                            }}
+                                        />
+                                    ) : null}
+                                    <div
+                                        className="mu-profile-placeholder"
+                                        style={{ display: editForm.profileLink ? "none" : "flex" }}
+                                    >
+                                        {editForm.profileInitials || getInitials(editForm.name || '')}
+                                    </div>
+                                </div>
+                                <p className="mu-profile-name">{editForm.name}</p>
+                                <p className="mu-profile-note">Profile picture (not editable here)</p>
+                            </div>
+
                             <div className="mu-grid">
                                 <div className="mu-field">
                                     <label>Name *</label>

@@ -1,8 +1,10 @@
 .admin-page {
     min-height: 100vh;
     background: #f4f4f4;
-    padding: 24px;
+    padding: clamp(16px, 3vw, 24px);
     color: #111;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .admin-page h2 {
@@ -68,11 +70,13 @@ tbody tr:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .search {
     flex: 1 1 260px;
-    min-width: 220px;
+    min-width: 0;
     background: #fff;
     border-radius: 999px;
     border: 1px solid rgba(0, 0, 0, 0.1);
@@ -80,10 +84,32 @@ tbody tr:hover {
     outline: none;
     font-size: 14px;
     margin-right: 10px;
+    box-sizing: border-box;
 }
 
 .empty-table-cell {
     text-align: center;
     padding: 40px;
     color: #666;
+}
+
+@media (max-width: 768px) {
+    .toolbar-flex {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search {
+        margin-right: 0;
+        min-width: 0;
+        width: 100%;
+    }
+    
+    .table-card {
+        overflow-x: auto;
+    }
+    
+    table {
+        min-width: 600px;
+    }
 }

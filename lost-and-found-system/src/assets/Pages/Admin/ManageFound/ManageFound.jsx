@@ -1,14 +1,32 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import './manage-found.css';
 import { app, auth } from '../../../../firebase.js';
-import { getDatabase, ref, onValue, push, update, remove } from 'firebase/database';
+import { getDatabase, ref, onValue, update, remove, set, runTransaction } from 'firebase/database';
 import { logAction } from '../../../../utils/logAction';
 import FoundCard from '../../../Components/FoundCard/FoundCard.jsx';
+import { useConfirmDialog } from '../../../Components/ConfirmDialog/ConfirmDialog.jsx';
+
+async function reserveFoundItemId(db) {
+    const counterRef = ref(db, 'counters/foundItems');
+    const result = await runTransaction(counterRef, (currentValue) => {
+        if (typeof currentValue !== 'number' || Number.isNaN(currentValue) || currentValue < 0) {
+            return 1;
+        }
+        return currentValue + 1;
+    });
+
+    if (!result.committed) {
+        throw new Error('Unable to reserve a new Found Item ID. Please try again.');
+    }
+
+    const nextNumber = result.snapshot.val();
+    return `Found${String(nextNumber).padStart(3, '0')}`;
+}
 
 export default function ManageFound() {
     const [items, setItems] = useState([]);
     const [query, setQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('Unclaimed');
     const [selected, setSelected] = useState(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [newItem, setNewItem] = useState({
@@ -35,6 +53,7 @@ export default function ManageFound() {
     const [error, setError] = useState('');
     const [errorContext, setErrorContext] = useState(''); // 'add', 'edit', 'claim', 'global'
     const [success, setSuccess] = useState('');
+    const confirmDialog = useConfirmDialog();
 
     // Simple validators
     function isValidUrl(value) {
@@ -98,7 +117,7 @@ export default function ManageFound() {
     function buildSearchIndex(item) {
         const reporterName = `${item.reporterFirstName || ''} ${item.reporterLastName || ''}`.trim();
         const parts = [
-            item.id,
+            item.displayId || item.id,
             item.name,
             item.description,
             item.location,
@@ -142,7 +161,7 @@ export default function ManageFound() {
             case 'owner':
                 return (item.ownerName || '').toLowerCase().includes(valueLc);
             case 'id':
-                return (item.id || '').toLowerCase().includes(valueLc);
+                return ((item.displayId || item.id || '')).toLowerCase().includes(valueLc);
             case 'date':
                 return (item.dateFound || '').toLowerCase().includes(valueLc);
             case 'time':
@@ -231,6 +250,7 @@ export default function ManageFound() {
             if (data) {
                 const itemsList = Object.entries(data).map(([id, value]) => ({
                     id,
+                    displayId: value.customId || id,
                     name: value.name || value.item || '',
                     description: value.description || value.additional || '',
                     image: value.image || value.imageUrl || '',
@@ -310,15 +330,21 @@ export default function ManageFound() {
             return;
         }
 
-        if (!window.confirm('Are you sure you want to add this found item?')) {
-            return;
-        }
+        const confirmed = await confirmDialog({
+            title: 'Add found item',
+            message: 'Are you sure you want to add this found item?',
+            confirmText: 'Add Item',
+            variant: 'default',
+        });
+        if (!confirmed) return;
 
         const db = getDatabase(app);
-        const foundRef = ref(db, 'foundItems');
 
         try {
-            await push(foundRef, {
+            const formattedId = await reserveFoundItemId(db);
+            const itemRef = ref(db, `foundItems/${formattedId}`);
+            await set(itemRef, {
+                customId: formattedId,
                 name: newItem.name,
                 description: newItem.description || '',
                 image: newItem.image || '',
@@ -337,6 +363,7 @@ export default function ManageFound() {
                 ownerName: '',
                 ownerContact: '',
                 ownerEmail: '',
+                lostItemId: newItem.lostItemId || '',
                 submittedAt: new Date().toISOString()
             });
             await logAction('Added found item', newItem.name, `Location: ${newItem.location}, Status: ${newItem.status || 'Unclaimed'}`);
@@ -358,43 +385,10 @@ export default function ManageFound() {
                 status: 'Unclaimed'
             });
             setShowAddForm(false);
-            showSuccess('Item added successfully!');
+            showSuccess(`Item added successfully with ID ${formattedId}!`);
         } catch (error) {
             console.error('Error adding item:', error);
             showError('Failed to add item. Please try again.', 'add');
-        }
-    }
-
-    async function validateClaim(item) {
-        if (!validation.method) {
-            showError('Please select a validation method.', 'claim');
-            return;
-        }
-
-        if (!window.confirm(`Are you sure you want to validate this claim using "${validation.method}"?`)) {
-            return;
-        }
-
-        const db = getDatabase(app);
-        const itemRef = ref(db, `foundItems/${item.id}`);
-        const details = {
-            method: validation.method,
-            notes: validation.notes || '',
-            date: new Date().toISOString().slice(0, 10)
-        };
-
-        try {
-            await update(itemRef, {
-                status: 'Validated',
-                validation: details
-            });
-            await logAction('Validated claim', item.name, `Method: ${details.method}, Notes: ${details.notes || 'None'}`);
-            setSelected(prev => prev ? { ...prev, status: 'Validated', validation: details } : null);
-            setValidation({ method: '', notes: '' });
-            showSuccess('Claim validated successfully!');
-        } catch (error) {
-            console.error('Error validating claim:', error);
-            showError('Failed to validate. Please try again.', 'claim');
         }
     }
 
@@ -404,24 +398,39 @@ export default function ManageFound() {
             return;
         }
 
-        if (!window.confirm(`Mark this item as claimed by ${claimer.name}?`)) {
+        if (!validation.method) {
+            showError('Please select a validation method before marking as claimed.', 'claim');
             return;
         }
+
+        const confirmed = await confirmDialog({
+            title: 'Mark as claimed',
+            message: `Mark this item as claimed by ${claimer.name}?`,
+            confirmText: 'Mark Claimed',
+        });
+        if (!confirmed) return;
 
         const db = getDatabase(app);
         const itemRef = ref(db, `foundItems/${item.id}`);
         const dateClaimed = new Date().toISOString().slice(0, 10);
+        const validationDetails = {
+            method: validation.method,
+            notes: validation.notes || '',
+            date: dateClaimed
+        };
 
         try {
             await update(itemRef, {
                 status: 'Claimed',
                 ownerName: claimer.name,
                 ownerContact: claimer.contact,
-                dateClaimed: dateClaimed
+                dateClaimed: dateClaimed,
+                validation: validationDetails
             });
             await logAction('Marked as claimed', item.name, `Claimed by: ${claimer.name}, Contact: ${claimer.contact}`);
             setSelected(null);
             setClaimer({ name: '', contact: '' });
+            setValidation({ method: '', notes: '' });
             showSuccess('Item marked as claimed!');
         } catch (error) {
             console.error('Error marking as claimed:', error);
@@ -430,9 +439,14 @@ export default function ManageFound() {
     }
 
     async function handleDelete(item) {
-        if (!window.confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`)) {
-            return;
-        }
+        const confirmed = await confirmDialog({
+            title: 'Delete found item',
+            message: `Are you sure you want to delete "${item.name}"? This action cannot be undone.`,
+            confirmText: 'Delete',
+            cancelText: 'Cancel',
+            variant: 'danger',
+        });
+        if (!confirmed) return;
 
         const db = getDatabase(app);
         const itemRef = ref(db, `foundItems/${item.id}`);
@@ -461,9 +475,12 @@ export default function ManageFound() {
             return;
         }
 
-        if (!window.confirm('Save changes to this item?')) {
-            return;
-        }
+        const confirmed = await confirmDialog({
+            title: 'Save changes',
+            message: 'Save changes to this item?',
+            confirmText: 'Save',
+        });
+        if (!confirmed) return;
 
         const db = getDatabase(app);
         const itemRef = ref(db, `foundItems/${editItem.id}`);
@@ -507,16 +524,21 @@ export default function ManageFound() {
         }
     }
 
-    function cancelEdit() {
-        if (isEditing && window.confirm('Discard unsaved changes?')) {
-            setIsEditing(false);
-            setEditItem(null);
-            setSelected(null);
-        } else if (!isEditing) {
-            setIsEditing(false);
-            setEditItem(null);
-            setSelected(null);
+    async function cancelEdit() {
+        if (isEditing) {
+            const confirmed = await confirmDialog({
+                title: 'Discard changes',
+                message: 'Discard unsaved changes?',
+                confirmText: 'Discard',
+                variant: 'danger',
+            });
+            if (!confirmed) {
+                return;
+            }
         }
+        setIsEditing(false);
+        setEditItem(null);
+        setSelected(null);
     }
 
     function handleSelect(item) {
@@ -649,7 +671,7 @@ export default function ManageFound() {
                 </select>
                 <button className="btn-secondary" onClick={() => {
                     setQuery('');
-                    setStatusFilter('all');
+                    setStatusFilter('Unclaimed');
                 }}>
                     Clear All
                 </button>
@@ -657,7 +679,8 @@ export default function ManageFound() {
 
             <div className="mf-cards">
                 {filtered.map((it) => (
-                    <FoundCard key={it.id} item={it} onSelect={handleSelect} />
+                    
+                    <FoundCard key={it.id} item={it} onSelect={handleSelect} isSelected={selected?.id === it.id} />
                 ))}
                 {!filtered.length && <div className="mf-empty">No items found.</div>}
             </div>
@@ -785,7 +808,7 @@ export default function ManageFound() {
                                                 </div>
                                             </div>
                                         )}
-                                        <div className="mf-detail"><strong>ID:</strong> {selected.id}</div>
+                                        <div className="mf-detail"><strong>ID:</strong> {selected.displayId || selected.id}</div>
                                         <div className="mf-detail"><strong>Item Name:</strong> {selected.name}</div>
                                         <div className="mf-detail"><strong>Description:</strong> {selected.description || '—'}</div>
                                         <div className="mf-detail"><strong>Location:</strong> {selected.location}</div>
@@ -871,9 +894,6 @@ export default function ManageFound() {
                                             </select>
                                             <label>Notes (optional)</label>
                                             <input value={validation.notes} onChange={(e) => setValidation(v => ({ ...v, notes: e.target.value }))} placeholder="Short notes" />
-                                            {validation.method && (
-                                                <button className="btn-primary validate-btn" onClick={() => validateClaim(selected)}>Validate Claim</button>
-                                            )}
                                         </div>
                                     )}
                                 </>
@@ -887,10 +907,10 @@ export default function ManageFound() {
                                 </>
                             ) : (
                                 <>
-                                    <button className="btn-primary" onClick={() => startEdit(selected)}>Edit</button>
-                                    <button className="btn-secondary" onClick={() => handleDelete(selected)}>Delete</button>
+                                    <button className="btn-edit" onClick={() => startEdit(selected)}>Edit</button>
+                                    <button className="btn-delete" onClick={() => handleDelete(selected)}>Delete</button>
                                     {selected.status !== 'Claimed' && (
-                                        <button className="btn-primary" onClick={() => markAsClaimed(selected)}>Mark as Claimed</button>
+                                        <button className="btn-claim" onClick={() => markAsClaimed(selected)}>Mark as Claimed</button>
                                     )}
                                 </>
                             )}

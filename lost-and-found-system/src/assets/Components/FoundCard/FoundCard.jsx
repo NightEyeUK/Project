@@ -1,7 +1,7 @@
 import "./found-card.css";
 import { NavLink } from "react-router";
 
-export default function FoundCard({ item, onSelect }) {
+export default function FoundCard({ item, onSelect, isSelected }) {
   return (
     <NavLink
       to="#"
@@ -11,7 +11,7 @@ export default function FoundCard({ item, onSelect }) {
         onSelect(item);
       }}
     >
-      <div className="found-card">
+      <div className={`found-card ${isSelected ? 'selected' : ''}`}>
         <img
           src={item.image || "/placeholder.jpg"}
           alt={item.name}

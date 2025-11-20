@@ -12,6 +12,8 @@ export default function Dashboard() {
     const [totalUsers, setTotalUsers] = useState(0);
     const [totalAdmins, setTotalAdmins] = useState(0);
 
+    
+
     // Load user data
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {

@@ -9,7 +9,7 @@
 
 }
 #welcomeMessage{
-    font-size: 4rem;
+    font-size: clamp(2rem, 6vw, 4rem);
     margin: 1.5rem 0rem;
 }
 
@@ -40,11 +40,11 @@
 
 .summary-value {
     font-weight: 700;
-    font-size: 3rem;
+    font-size: clamp(1.8rem, 5vw, 3rem);
 }
 
 .summary-label {
-    font-size: 1.5rem;
+    font-size: clamp(1rem, 3vw, 1.5rem);
     color: #666;
 }
 
@@ -74,9 +74,14 @@
 @media (max-width:640px) {
     .admin-page {
         padding: 16px;
+        margin: 0.5rem;
     }
 
     .summary-card {
         flex: 1 1 100%;
+    }
+    
+    #welcomeMessage {
+        font-size: 2rem;
     }
 }

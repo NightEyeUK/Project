@@ -1,11 +1,30 @@
 import "./submit-lost.css";
 import {app,auth}  from "../../../firebase.js";
-import { getDatabase, ref, push } from "firebase/database";
+import { getDatabase, ref, set, runTransaction } from "firebase/database";
 import { useState } from "react";
 import { logAction } from "../../../utils/logAction";
+import { useConfirmDialog } from "../../Components/ConfirmDialog/ConfirmDialog.jsx";
+
+async function reserveLostItemId(db) {
+  const counterRef = ref(db, 'counters/lostItems');
+  const result = await runTransaction(counterRef, (currentValue) => {
+    if (typeof currentValue !== 'number' || Number.isNaN(currentValue) || currentValue < 0) {
+      return 1;
+    }
+    return currentValue + 1;
+  });
+
+  if (!result.committed) {
+    throw new Error('Unable to reserve a new Lost Item ID. Please try again.');
+  }
+
+  const nextNumber = result.snapshot.val();
+  return `Lost${String(nextNumber).padStart(3, '0')}`;
+}
 
 export default function SubmitLost() {
   const db = getDatabase(app);
+  const confirmDialog = useConfirmDialog();
 
   const [formData, setFormData] = useState({
     item: "",
@@ -124,9 +143,14 @@ export default function SubmitLost() {
       return;
     }
 
-    setIsSubmitting(true);
-    const lostRef = ref(db, "lostItems");
+    const confirmed = await confirmDialog({
+      title: 'Submit lost report',
+      message: 'Submit this lost item report? Please review your details before continuing.',
+      confirmText: 'Submit Report'
+    });
+    if (!confirmed) return;
 
+    setIsSubmitting(true);
     try {
       // Clean up data before submission
       const submissionData = {
@@ -146,15 +170,19 @@ export default function SubmitLost() {
         status: "Pending"
       };
 
-      const newRef = await push(lostRef, submissionData);
-      const newId = newRef.key;
+      const formattedId = await reserveLostItemId(db);
+      const recordRef = ref(db, `lostItems/${formattedId}`);
+      await set(recordRef, {
+        customId: formattedId,
+        ...submissionData
+      });
       await logAction(
         'Submitted lost item report', 
         submissionData.item, 
         `Location: ${submissionData.location}, Reported by: ${submissionData.first} ${submissionData.last}`
       );
       
-      setSuccessId(newId || "");
+      setSuccessId(formattedId);
       setShowSuccess(true);
       
       // Reset form
@@ -203,7 +231,7 @@ export default function SubmitLost() {
           <div className="form-section">
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="item">What was Lost *</label>
+                <label htmlFor="item">What was Lost <span className="required">*</span></label>
                 <input
                   type="text"
                   id="item"
@@ -217,7 +245,7 @@ export default function SubmitLost() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="date">Date Lost *</label>
+                <label htmlFor="date">Date Lost <span className="required">*</span></label>
                 <input
                   type="date"
                   id="date"
@@ -234,7 +262,7 @@ export default function SubmitLost() {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="location">Where it was Lost? *</label>
+                <label htmlFor="location">Where it was Lost? <span className="required">*</span></label>
                 <input
                   type="text"
                   id="location"
@@ -250,7 +278,7 @@ export default function SubmitLost() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="time">Time Lost *</label>
+                <label htmlFor="time">Time Lost <span className="required">*</span></label>
                 <input
                   type="time"
                   id="time"
@@ -334,7 +362,7 @@ export default function SubmitLost() {
           <div className="form-section">
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="first">First Name *</label>
+                <label htmlFor="first">First Name <span className="required">*</span></label>
                 <input
                   type="text"
                   id="first"
@@ -347,7 +375,7 @@ export default function SubmitLost() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="last">Last Name *</label>
+                <label htmlFor="last">Last Name <span className="required">*</span></label>
                 <input
                   type="text"
                   id="last"
@@ -362,7 +390,7 @@ export default function SubmitLost() {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="phone">Phone Number *</label>
+                <label htmlFor="phone">Phone Number <span className="required">*</span></label>
                 <input
                   type="tel"
                   id="phone"
@@ -376,7 +404,7 @@ export default function SubmitLost() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="email">Email *</label>
+                <label htmlFor="email">Email <span className="required">*</span></label>
                 <input
                   type="email"
                   id="email"

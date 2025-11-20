@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router";
 import { auth } from "./firebase.js";
 import { onAuthStateChanged } from "firebase/auth";
+import { ConfirmDialogProvider } from "./assets/Components/ConfirmDialog/ConfirmDialog.jsx";
 
 import Nav from "./assets/Components/Nav/Nav";
-import AdminNav from "./assets/Pages/Admin/AdminNav/AdminNav";
+import AdminNav from "./assets/Components/AdminNav/AdminNav";
 
 import Home from "./assets/Pages/Home/Home";
 import SubmitLost from "./assets/Pages/SubmitLost/SubmitLost";
@@ -37,6 +38,7 @@ function App() {
   };
 
   return (
+    <ConfirmDialogProvider>
     <BrowserRouter>
 
       {currentUser ? <AdminNav /> : <Nav />}
@@ -89,6 +91,7 @@ function App() {
       
       </Routes>
     </BrowserRouter>
+    </ConfirmDialogProvider>
   );
 }
 

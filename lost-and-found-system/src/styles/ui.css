@@ -12,8 +12,10 @@
 .page {
 	min-height: 100vh;
 	background: var(--bg-page);
-	padding: 24px;
+	padding: clamp(16px, 3vw, 24px);
 	color: var(--text-main);
+	box-sizing: border-box;
+	overflow-x: hidden;
 }
 
 .page h2 {
@@ -46,7 +48,14 @@
 	box-shadow: var(--shadow);
 	padding: 16px;
 	flex: 1 1 220px;
-	min-width: 220px;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+@media (min-width: 480px) {
+	.grid-col {
+		min-width: 220px;
+	}
 }
 
 .table-card {
@@ -170,6 +179,7 @@
 
 	.cell {
 		width: 100%;
+		box-sizing: border-box;
 	}
 
 	.cell::before {
@@ -177,5 +187,14 @@
 		font-weight: 600;
 		color: #555;
 		margin-right: 6px;
+	}
+	
+	.page {
+		padding: 16px 12px;
+	}
+	
+	.grid-col {
+		flex: 1 1 100%;
+		min-width: 0;
 	}
 }

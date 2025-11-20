@@ -24,6 +24,7 @@ export default function ViewFoundItem() {
         const itemsList = Object.entries(data)
           .map(([id, value]) => ({
             id,
+            displayId: value.customId || id,
             name: value.name || "",
             description: value.description || "",
             image: value.image || "",
@@ -48,7 +49,8 @@ export default function ViewFoundItem() {
       (item) =>
         item.name.toLowerCase().includes(query) ||
         item.location.toLowerCase().includes(query) ||
-        (item.description || "").toLowerCase().includes(query)
+        (item.description || "").toLowerCase().includes(query) ||
+        ((item.displayId || item.id || "").toLowerCase().includes(query))
     );
   }, [items, searchQuery]);
 
@@ -100,19 +102,48 @@ export default function ViewFoundItem() {
           className="item-details-overlay"
           onClick={() => setSelectedItem(null)}
         >
-          <div className="item-details" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={getImage(selectedItem.image)}
-              alt={selectedItem.name}
-              className="details-image"
-            />
-            <p><strong>ID:</strong> {selectedItem.id}</p>
-            <h3>{selectedItem.name}</h3>
-            <p><strong>Description:</strong> {selectedItem.description || "—"}</p>
-            <p><strong>Found at:</strong> {selectedItem.location}</p>
-            <p><strong>Date Found:</strong> {selectedItem.dateFound}</p>
-            <p><strong>Status:</strong> {selectedItem.status}</p>
-            <button onClick={() => setSelectedItem(null)}>Close</button>
+          <div className="item-details" onClick={(e) => /* e.stopPropagation() */{}}>
+            <div className="item-details-header">
+              <h3>Item Details</h3>
+              {/* <button 
+                className="item-details-close"
+                onClick={() => setSelectedItem(null)}
+                aria-label="Close"
+              >
+                ×
+              </button> */}
+            </div>
+            
+            <div className="item-details-content">
+              {selectedItem.image && (
+                <div className="item-details-image-container">
+                  <img
+                    src={getImage(selectedItem.image)}
+                    alt={selectedItem.name}
+                    className="details-image"
+                  />
+                </div>
+              )}
+
+              <div className="item-details-info">
+                <h4>Item Information</h4>
+                <p><strong>Item Name:</strong> {selectedItem.name}</p>
+                <p><strong>ID:</strong> {selectedItem.displayId || selectedItem.id}</p>
+                <p><strong>Description:</strong> {selectedItem.description || "—"}</p>
+                <p><strong>Found at:</strong> {selectedItem.location}</p>
+                <p><strong>Date Found:</strong> {selectedItem.dateFound}</p>
+                <p>
+                  <strong>Status:</strong> 
+                  <span className={`status-badge ${(selectedItem.status || "Pending").toLowerCase()}`}>
+                    {selectedItem.status || "Pending"}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="item-details-actions">
+              <button onClick={() => setSelectedItem(null)}>Close</button>
+            </div>
           </div>
         </div>
       )}

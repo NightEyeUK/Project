@@ -1,8 +1,10 @@
 .admin-page {
     min-height: 100vh;
     background: #f4f4f4;
-    padding: 24px;
+    padding: clamp(16px, 3vw, 24px);
     color: #111;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .admin-page h2 {
@@ -103,12 +105,20 @@
 
 .mf-search {
     flex: 1 1 260px;
-    min-width: 220px;
+    min-width: 0;
     background: #fff;
     border-radius: 999px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     padding: 10px 14px;
     outline: none;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .mf-search {
+        min-width: 0;
+        width: 100%;
+    }
 }
 
 .status-filter {
@@ -262,6 +272,52 @@
     background: #fafafa;
 }
 
+/* Edit, Delete, and Claim button styles */
+.btn-edit {
+    background: #4b5563;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.btn-edit:hover {
+    background: #374151;
+}
+
+.btn-delete {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.btn-delete:hover {
+    background: #b91c1c;
+}
+
+.btn-claim {
+    background: #2f6fff;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.btn-claim:hover {
+    background: #255ded;
+}
+
 /* Add New Item Form */
 /* Background overlay */
 .mf-overlay {
@@ -274,7 +330,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999; /* make sure it’s above other content */
+  z-index: 1000; /* make sure it’s above other content */
 }
 
 /* Floating form */

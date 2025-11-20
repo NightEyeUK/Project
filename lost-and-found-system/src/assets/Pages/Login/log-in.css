@@ -1,12 +1,68 @@
 .login-container {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
     justify-content: center;
-    padding-top: 10rem;
-    /* background: linear-gradient(180deg, #f7fbff 0%, #eef6fc 100%); */
-    margin: 2rem;
-   
+    align-items: center;
+    padding: 2rem 1rem;
+    box-sizing: border-box;
 }
+.password-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-field .loginInput {
+    flex: 1;
+    padding-right: 45px;
+    width: 100%;
+}
+
+.showPasswordBtn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 18px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: auto;
+    height: auto;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    border-radius: 6px;
+    z-index: 1;
+}
+
+.showPasswordBtn:hover {
+    color: #346E98;
+    background-color: rgba(52, 110, 152, 0.1);
+}
+
+.showPasswordBtn:active {
+    background-color: rgba(52, 110, 152, 0.2);
+}
+
+.showPasswordBtn:focus {
+    outline: 2px solid rgba(52, 110, 152, 0.3);
+    outline-offset: 2px;
+}
+
+.showPasswordBtn i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+
 
 .login-container .banner {
     display: flex;
@@ -24,7 +80,8 @@
 .login-container .login {
     display: flex;
     flex-direction: column;
-    width: 370px;
+    width: 100%;
+    max-width: 370px;
     height: fit-content;
     padding: 32px;
     background-color: #ffffff;
@@ -33,6 +90,7 @@
     text-align: center;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.291);
     gap: 5px;
+    box-sizing: border-box;
 }
 
 .login-container .login label {
@@ -44,18 +102,20 @@
     margin-bottom: 0.3rem;
 }
 
-.login-container .login input,
-.login-container .login button {
+.login-container .login input {
     padding: 0.7rem;
     width: 100%;
     box-sizing: border-box;
-}
-
-.login-container .login input {
     border: 1px solid #d7dde3;
     border-radius: 10px;
     transition: border-color 0.2s ease;
     font-size: 0.95rem;
+}
+
+.login-container .login button:not(.showPasswordBtn) {
+    padding: 0.7rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .login-container .login input:focus {
@@ -137,4 +197,22 @@
 
 .login-container .signuphere .loginRegisterButton:hover {
     text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 1rem 0.5rem;
+    }
+    
+    .login-container .login {
+        padding: 24px 20px;
+    }
+    
+    .login-container .banner {
+        font-size: 18px;
+    }
+    
+    .login-container .banner h1 {
+        font-size: 1.5rem;
+    }
 }

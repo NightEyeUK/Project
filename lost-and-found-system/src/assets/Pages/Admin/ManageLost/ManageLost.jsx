@@ -10,6 +10,8 @@ import {
     push,
 } from "firebase/database";
 import { logAction } from "../../../../utils/logAction";
+const FALLBACK_IMAGE = "https://media.istockphoto.com/id/1980276924/vector/no-photo-thumbnail-graphic-element-no-found-or-available-image-in-the-gallery-or-album-flat.jpg?s=612x612&w=0&k=20&c=ZBE3NqfzIeHGDPkyvulUw14SaWfDj2rZtyiKv3toItk=";
+import { useConfirmDialog } from "../../../Components/ConfirmDialog/ConfirmDialog.jsx";
 
 export default function ManageLost() {
     const [reports, setReports] = useState([]);
@@ -17,6 +19,7 @@ export default function ManageLost() {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all"); // "all", "found", "notFound"
     const [selectedReport, setSelectedReport] = useState(null);
+    const confirmDialog = useConfirmDialog();
 
     useEffect(() => {
         const db = getDatabase(app);
@@ -28,6 +31,7 @@ export default function ManageLost() {
             if (data) {
                 const reportList = Object.entries(data).map(([id, value]) => ({
                     id,
+                    displayId: value.customId || id,
                     name: value.item || "Unnamed Item",
                     reportedBy: `${value.first || "Unknown"} ${value.last || ""}`.trim(),
                     dateLost: value.date || "N/A",
@@ -42,6 +46,7 @@ export default function ManageLost() {
                     additional: value.additional || "N/A",
                     first: value.first || "",
                     last: value.last || "",
+                    imageUrl: (value.imageUrl || value.image || "").trim()
                 }));
                 setReports(reportList);
                 setFilteredReports(reportList);
@@ -76,44 +81,15 @@ export default function ManageLost() {
         setFilteredReports(filtered);
     }, [search, statusFilter, reports]);
 
-    // --- Mark as Found ---
-    /* const handleMarkAsFound = async (report) => {
-        if (!window.confirm(`Mark "${report.name}" as found and add it to Found Items?`)) return;
-
-        const db = getDatabase(app);
-        const itemRef = ref(db, `lostItems/${report.id}`);
-
-        try {
-            // Update lost item status
-            await update(itemRef, { status: "Found" });
-
-            // Create found item with owner details
-            const foundRef = ref(db, 'foundItems');
-            const foundItemData = {
-                name: report.name,
-                description: report.additional || `${report.brand !== "N/A" ? report.brand + " " : ""}${report.primary !== "N/A" ? report.primary : ""} ${report.secondary !== "N/A" ? report.secondary : ""}`.trim() || '',
-                image: '',
-                location: report.location,
-                dateFound: new Date().toISOString().slice(0, 10),
-                status: 'Pending',
-                ownerName: `${report.first} ${report.last}`.trim(),
-                ownerContact: report.contact,
-                ownerEmail: report.email,
-                lostItemId: report.id
-            };
-
-            await push(foundRef, foundItemData);
-            await logAction('Marked lost item as found', report.name, `Owner: ${foundItemData.ownerName}, Location: ${report.location}`);
-            alert("Item marked as Found and added to Found Items with owner details!");
-        } catch (error) {
-            console.error("Error marking as found:", error);
-            alert("Failed to update. Please try again.");
-        }
-    }; */
-
     // --- Delete report ---
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this report?")) return;
+        const confirmed = await confirmDialog({
+            title: 'Delete lost report',
+            message: 'Are you sure you want to delete this report?',
+            confirmText: 'Delete',
+            variant: 'danger'
+        });
+        if (!confirmed) return;
 
         const db = getDatabase(app);
         const itemRef = ref(db, `lostItems/${id}`);
@@ -154,26 +130,26 @@ export default function ManageLost() {
                     <div className="cell">Item Name</div>
                     <div className="cell">Reported By</div>
                     <div className="cell">Date Lost</div>
-                    <div className="cell">Status</div>
+                    {/* <div className="cell">Status</div> */}
                     <div className="cell">Actions</div>
                 </div>
 
                 {filteredReports.length > 0 ? (
                     filteredReports.map((r) => (
                         <div className="row" key={r.id}>
-                            <div className="cell" data-label="ID">{r.id}</div>
+                            <div className="cell" data-label="ID">{r.displayId || r.id}</div>
                             <div className="cell" data-label="Item Name">{r.name}</div>
                             <div className="cell" data-label="Reported By">{r.reportedBy}</div>
                             <div className="cell" data-label="Date Lost">{r.dateLost}</div>
-                            <div className="cell" data-label="Status">{r.status}</div>
+                          {/*   <div className="cell" data-label="Status">{r.status}</div> */}
                             <div className="cell" data-label="Actions">
                                 <button className="btn" onClick={() => setSelectedReport(r)}>
                                     View
                                 </button>
                                 
-                                <button  className="btn-delete" onClick={() => handleDelete(r.id)}>
+                               {/*  <button  className="btn-delete" onClick={() => handleDelete(r.id)}>
                                     Delete
-                                </button>
+                                </button> */}
                             </div>
                         </div>
                     ))
@@ -195,7 +171,37 @@ export default function ManageLost() {
                             <button className="mf-close" onClick={handleClosePopup}>×</button>
                         </div>
                         <div className="mf-modal-body">
-                            <div className="mf-detail"><strong>ID:</strong> {selectedReport.id}</div>
+                            {selectedReport.imageUrl && selectedReport.imageUrl.trim() ? (
+                                <div className="mf-detail image-preview">
+                                    <img
+                                        src={selectedReport.imageUrl.trim()}
+                                        alt={selectedReport.name || "Lost Item"}
+                                        onError={(e) => {
+                                            console.error('Image failed to load:', selectedReport.imageUrl);
+                                            if (e.currentTarget.src !== FALLBACK_IMAGE) {
+                                                e.currentTarget.src = FALLBACK_IMAGE;
+                                            }
+                                        }}
+                                        onLoad={() => {
+                                            console.log('Image loaded successfully:', selectedReport.imageUrl);
+                                        }}
+                                    />
+                                    <small style={{ display: 'block', marginTop: '8px', color: '#666', fontSize: '12px' }}>
+                                        Image URL: {selectedReport.imageUrl.trim()}
+                                    </small>
+                                </div>
+                            ) : (
+                                <div className="mf-detail image-preview">
+                                    <img
+                                        src={FALLBACK_IMAGE}
+                                        alt="No image available"
+                                    />
+                                    <small style={{ display: 'block', marginTop: '8px', color: '#999', fontSize: '12px' }}>
+                                        No image URL provided
+                                    </small>
+                                </div>
+                            )}
+                            <div className="mf-detail"><strong>ID:</strong> {selectedReport.displayId || selectedReport.id}</div>
                             <div className="mf-detail"><strong>Item Name:</strong> {selectedReport.name}</div>
                             <div className="mf-detail"><strong>Reported By:</strong> {selectedReport.reportedBy}</div>
                             <div className="mf-detail"><strong>Location Lost:</strong> {selectedReport.location}</div>

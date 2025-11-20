@@ -1,8 +1,10 @@
 .admin-page {
     min-height: 100vh;
     background: #f4f4f4;
-    padding: 24px;
+    padding: clamp(16px, 3vw, 24px);
     color: #111;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .admin-page h2 {
@@ -20,12 +22,24 @@
 
 .search {
     flex: 1 1 260px;
-    min-width: 220px;
+    min-width: 0;
     background: #fff;
     border-radius: 999px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     padding: 10px 14px;
     outline: none;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .search {
+        min-width: 0;
+        width: 100%;
+    }
+    
+    .table-card {
+        overflow-x: auto;
+    }
 }
 
 .btn {
@@ -69,6 +83,7 @@
 .row:hover:not(.header) {
     background: #f9fbff;
 }
+
 
 .cell {
     flex: 1 1 0;
@@ -177,6 +192,28 @@
 .center-grid {
     grid-column: 1 / -1;
     text-align: center;
+}
+
+.mf-modal-body img{
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    object-fit: contain;
+    display: block;
+}
+
+.mf-detail.image-preview {
+    margin-bottom: 16px;
+    padding: 0;
+}
+
+.mf-detail.image-preview img {
+    max-height: 400px;
+    width: 100%;
+    object-fit: contain;
+    background: #f5f5f5;
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 /* Uses shared ui.css */

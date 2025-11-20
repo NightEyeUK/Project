@@ -3,11 +3,13 @@ import './claim-history.css';
 import {app,auth} from '../../../../firebase.js';
 import { getDatabase, ref, onValue, update } from 'firebase/database';
 import { logAction } from '../../../../utils/logAction';
+import { useConfirmDialog } from '../../../Components/ConfirmDialog/ConfirmDialog.jsx';
 
 function ClaimHistory() {
 	const [claims, setClaims] = useState([]);
 	const [selectedClaim, setSelectedClaim] = useState(null);
 	const [searchQuery, setSearchQuery] = useState('');
+	const confirmDialog = useConfirmDialog();
 
 	// Load claimed items from Firebase
 	useEffect(() => {
@@ -21,6 +23,7 @@ function ClaimHistory() {
 					.filter(([id, value]) => value.status === 'Claimed' && value.ownerName)
 					.map(([id, value]) => ({
 						id,
+						displayId: value.customId || id,
 						item: value.name || '',
 						image: value.image || '',
 						claimedBy: value.ownerName || 'Unknown',
@@ -55,7 +58,7 @@ function ClaimHistory() {
 		const query = searchQuery.toLowerCase();
 		return (
 			claim.item.toLowerCase().includes(query) ||
-			(claim.id || '').toLowerCase().includes(query) ||
+			(claim.displayId || claim.id || '').toLowerCase().includes(query) ||
 			claim.claimedBy.toLowerCase().includes(query) ||
 			claim.location.toLowerCase().includes(query)
 		);
@@ -63,7 +66,13 @@ function ClaimHistory() {
 
 	// Revert claim status
 	const handleRevert = async (claim) => {
-		if (!window.confirm(`Revert "${claim.item}" claim status? This will change it back to Unclaimed.`)) return;
+		const confirmed = await confirmDialog({
+			title: 'Revert claim',
+			message: `Revert "${claim.item}" claim status? This will change it back to Unclaimed.`,
+			confirmText: 'Revert',
+			variant: 'danger'
+		});
+		if (!confirmed) return;
 
 		const db = getDatabase(app);
 		const itemRef = ref(db, `foundItems/${claim.id}`);
@@ -115,15 +124,16 @@ function ClaimHistory() {
 						{filteredClaims.length > 0 ? (
 							filteredClaims.map((c) => (
 								<tr key={c.id}>
-									<td data-label="ID" className="id-cell">{c.id}</td>
+									<td data-label="ID" className="id-cell">{c.displayId || c.id}</td>
 									<td data-label="Item Name">{c.item}</td>
 									<td data-label="Claimed By">{c.claimedBy}</td>
 									<td data-label="Date Claimed">{c.date}</td>
 									<td data-label="Processed By">{c.admin}</td>
 									<td data-label="Action">
 										<button className="btn" onClick={() => setSelectedClaim(c)}>View</button>
-										<button className="btn" onClick={() => handleRevert(c)}>Revert Action</button>
+									
 									</td>
+									<td><button className="btn" onClick={() => handleRevert(c)}>Revert Action</button>	</td>
 								</tr>
 							))
 						) : (
@@ -151,7 +161,7 @@ function ClaimHistory() {
 									<img src={selectedClaim.image} alt={selectedClaim.item} className="mf-image" />
 								</div>
 							)}
-							<div className="mf-detail"><strong>ID:</strong> {selectedClaim.id}</div>
+							<div className="mf-detail"><strong>ID:</strong> {selectedClaim.displayId || selectedClaim.id}</div>
 							<div className="mf-detail"><strong>Item Name:</strong> {selectedClaim.item}</div>
 							<div className="mf-detail"><strong>Description:</strong> {selectedClaim.description || '—'}</div>
 							<div className="mf-detail"><strong>Claimed By:</strong> {selectedClaim.claimedBy}</div>

@@ -19,7 +19,12 @@ export default function Login() {
     const [initializing, setInitializing] = useState(true);
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [userIdForPasswordChange, setUserIdForPasswordChange] = useState(null);
+    const [userForPasswordChange, setUserForPasswordChange] = useState(null);
+    const [isPasswordChangeRequired, setIsPasswordChangeRequired] = useState(false);
+    const [isDefaultAdminUser, setIsDefaultAdminUser] = useState(false);
     const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false); // 👈 for toggle
+
 
     // Initialize default admin on component mount
     useEffect(() => {
@@ -60,12 +65,15 @@ export default function Login() {
                     await signOut(auth);
 
                     // Create admin in database with passwordChanged: false for first-time login
+                    const adminInitials = 'AD'; // Administrator initials
                     const adminData = {
                         name: 'Administrator',
                         email: DEFAULT_ADMIN_EMAIL,
                         role: 'Admin',
                         status: 'Active',
                         passwordChanged: false,
+                        profileInitials: adminInitials,
+                        profileLink: '',
                         createdAt: new Date().toISOString()
                     };
                     await set(ref(db, 'users/admin-001'), adminData);
@@ -75,12 +83,15 @@ export default function Login() {
                     if (authError.code === 'auth/email-already-in-use') {
                         // Admin exists in Auth but not DB - treat as existing account
                         // Don't force password change since we don't know if they've already changed it
+                        const adminInitials = 'AD'; // Administrator initials
                         const adminData = {
                             name: 'Administrator',
                             email: DEFAULT_ADMIN_EMAIL,
                             role: 'Admin',
                             status: 'Active',
-                            passwordChanged: true // Assume password was already changed
+                            passwordChanged: true, // Assume password was already changed
+                            profileInitials: adminInitials,
+                            profileLink: ''
                         };
                         await set(ref(db, 'users/admin-001'), adminData);
                         console.log('Existing admin account synced to database');
@@ -110,7 +121,15 @@ export default function Login() {
             }
         } catch (error) {
             console.error('Error initializing admin:', error);
-            setError('System initialization failed. Please refresh the page.');
+            let initErrorMessage = 'System initialization failed. ';
+            if (error.code === 'auth/network-request-failed') {
+                initErrorMessage += 'Network error. Please check your internet connection and refresh the page.';
+            } else if (error.message && error.message.includes('network')) {
+                initErrorMessage += 'Network error. Please check your internet connection and refresh the page.';
+            } else {
+                initErrorMessage += 'Please refresh the page or contact administrator if the problem persists.';
+            }
+            setError(initErrorMessage);
         } finally {
             setInitializing(false);
         }
@@ -119,16 +138,48 @@ export default function Login() {
     async function handleSubmit(e) {
         e.preventDefault();
         setError("");
+        
+        // Validate input fields
+        if (!email.trim()) {
+            setError('Please enter your email address.');
+            return;
+        }
+        
+        if (!password.trim()) {
+            setError('Please enter your password.');
+            return;
+        }
+        
+        // Basic email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+            setError('Please enter a valid email address.');
+            return;
+        }
+        
         setLoading(true);
 
         try {
             // First, check user status BEFORE attempting Firebase Auth login
             const db = getDatabase(app);
             const usersRef = ref(db, 'users');
-            const snapshot = await get(usersRef);
+            let snapshot;
+            
+            try {
+                snapshot = await get(usersRef);
+            } catch (dbError) {
+                console.error('Database read error:', dbError);
+                if (dbError.code === 'unavailable' || dbError.message?.includes('network') || dbError.message?.includes('Network')) {
+                    setError('Unable to connect to the server. Please check your internet connection and try again.');
+                } else {
+                    setError('Database connection error. Please try again or contact administrator if the problem persists.');
+                }
+                setLoading(false);
+                return;
+            }
 
             if (!snapshot.exists()) {
-                setError('User database not found');
+                setError('User database not found. Please contact administrator.');
                 setLoading(false);
                 return;
             }
@@ -139,7 +190,7 @@ export default function Login() {
             );
 
             if (!userEntry) {
-                setError('No account found with this email');
+                setError('No account found with this email address. Please check your email and try again.');
                 setLoading(false);
                 return;
             }
@@ -189,6 +240,9 @@ export default function Login() {
             if (!passwordChanged || isUsingDefaultPassword) {
                 console.log('Password change required - showing modal');
                 setUserIdForPasswordChange(userId);
+                setUserForPasswordChange(auth.currentUser);
+                setIsPasswordChangeRequired(true);
+                setIsDefaultAdminUser(userData.email === DEFAULT_ADMIN_EMAIL);
                 setShowChangePassword(true);
                 setLoading(false);
                 return;
@@ -207,16 +261,41 @@ export default function Login() {
                 console.error("Sign out error:", signOutError);
             }
 
-            // Provide user-friendly error messages
+            // Provide clear, user-friendly error messages for all possible errors
+            let errorMessage = 'Login failed. Please try again.';
+            
             if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-                setError('Invalid email or password');
+                errorMessage = 'Invalid email or password. Please check your credentials and try again.';
             } else if (error.code === 'auth/user-not-found') {
-                setError('No account found with this email');
+                errorMessage = 'No account found with this email address. Please check your email and try again.';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = 'Invalid email format. Please enter a valid email address.';
             } else if (error.code === 'auth/too-many-requests') {
-                setError('Too many failed attempts. Please try again later');
+                errorMessage = 'Too many failed login attempts. Please wait a few minutes and try again.';
+            } else if (error.code === 'auth/network-request-failed') {
+                errorMessage = 'Network error. Please check your internet connection and try again.';
+            } else if (error.code === 'auth/user-disabled') {
+                errorMessage = 'This account has been disabled. Please contact administrator.';
+            } else if (error.code === 'auth/operation-not-allowed') {
+                errorMessage = 'Login operation is not allowed. Please contact administrator.';
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = 'Password is too weak. Please use a stronger password.';
+            } else if (error.code === 'auth/email-already-in-use') {
+                errorMessage = 'This email is already registered. Please use a different email.';
+            } else if (error.message) {
+                // Use the error message if available, but make it more user-friendly
+                if (error.message.includes('network') || error.message.includes('Network')) {
+                    errorMessage = 'Network error. Please check your internet connection and try again.';
+                } else if (error.message.includes('timeout') || error.message.includes('Timeout')) {
+                    errorMessage = 'Request timed out. Please check your internet connection and try again.';
+                } else {
+                    errorMessage = error.message;
+                }
             } else {
-                setError(error.message || 'Login failed. Please try again');
+                errorMessage = 'An unexpected error occurred. Please try again or contact support if the problem persists.';
             }
+            
+            setError(errorMessage);
             setLoading(false);
         }
     }
@@ -225,6 +304,9 @@ export default function Login() {
         console.log('Password changed successfully');
         setShowChangePassword(false);
         setUserIdForPasswordChange(null);
+        setUserForPasswordChange(null);
+        setIsPasswordChangeRequired(false);
+        setIsDefaultAdminUser(false);
         navigate('/admin/dashboard');
     }
 
@@ -233,10 +315,13 @@ export default function Login() {
         signOut(auth);
         setShowChangePassword(false);
         setUserIdForPasswordChange(null);
-        setError('Password change is required to continue');
+        setUserForPasswordChange(null);
+        setIsPasswordChangeRequired(false);
+        setIsDefaultAdminUser(false);
+        setError('Password change is required for security. Please log in again and change your password to continue.');
     }
 
-   
+
 
     return (
         <div className="login-container">
@@ -257,21 +342,34 @@ export default function Login() {
                         placeholder="Enter your email..."
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        required
+                        
                         disabled={loading}
                     />
 
                     <label htmlFor="password">Password</label>
-                    <input
-                        id="password"
-                        type="password"
-                        className="loginInput"
-                        placeholder="Enter your password..."
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        disabled={loading}
-                    />
+                    <div className="password-field">
+                        <input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            className="loginInput"
+                            placeholder="Enter your password..."
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            
+                            disabled={loading}
+                        />
+                        <button
+                            type="button"
+                            className="showPasswordBtn"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label="Toggle password visibility"
+                        >
+                            <i
+                                className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"
+                                    }`}
+                            ></i>
+                        </button>
+                    </div>
 
                     <NavLink to="/forgot-password">Forgot Password?</NavLink>
 
@@ -280,19 +378,19 @@ export default function Login() {
                         type="submit"
                         disabled={loading}
                     >
-                        {loading ? 'Logging in...' : 'Log In'}
+                        {loading ? "Logging in..." : "Log In"}
                     </button>
                 </form>
             </div>
 
-            {showChangePassword && (
+            {showChangePassword && userForPasswordChange && (
                 <ChangePassword
-                    user={auth.currentUser}
+                    user={userForPasswordChange}
                     userId={userIdForPasswordChange}
                     onSuccess={handlePasswordChangeSuccess}
                     onCancel={handlePasswordChangeCancel}
-                    isDefaultAdmin={email === DEFAULT_ADMIN_EMAIL} 
-                    isRequired={true}
+                    isDefaultAdmin={isDefaultAdminUser}
+                    isRequired={isPasswordChangeRequired}
                 />
             )}
         </div>
