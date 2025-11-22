@@ -1,0 +1,287 @@
+.view-found-container {
+    width: 96%;
+    max-width: 100%;
+    padding: clamp(12px, 2vw, 20px);
+    box-sizing: border-box;
+    margin: clamp(0.5rem, 2vw, 2rem) auto;
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.291);
+    align-self: center;
+    overflow-x: hidden;
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.search {
+    flex: 1 1 260px;
+    min-width: 0;
+    background: #fff;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 10px 14px;
+    outline: none;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .search {
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+.found-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: flex-start;
+}
+
+/* Overlay matching app design */
+.item-details-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    box-sizing: border-box;
+    z-index: 9999;
+}
+
+/* Modal matching app design system */
+.item-details {
+    background: #fff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 560px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 10000;
+}
+
+/* Header matching app style */
+.item-details-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.item-details-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.item-details-close {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+    color: #000;
+    background-color: black;
+    transition: opacity 0.15s ease;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-details-close:hover {
+    opacity: 0.6;
+}
+
+/* Image section */
+.item-details-image-container {
+    width: 100%;
+    margin-bottom: 16px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.details-image {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    object-fit: contain;
+    display: block;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+/* Content section */
+.item-details-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.item-details-info {
+    margin-bottom: 16px;
+}
+
+.item-details-info h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+}
+
+.item-details-info p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+}
+
+.item-details-info p strong {
+    font-weight: 600;
+    color: #333;
+}
+
+.item-details-info p:last-child {
+    margin-bottom: 0;
+}
+
+/* Status badge - simple style */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.status-badge.unclaimed,
+.status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.claimed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.validated {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Button styling matching app */
+.item-details-actions {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.item-details button {
+    padding: 8px 14px;
+    background: #2f6fff;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s ease;
+    box-shadow: 0 2px 10px rgba(47, 111, 255, 0.25);
+}
+
+.item-details button:hover {
+    background: #255ded;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .item-details-overlay {
+        padding: 12px;
+    }
+
+    .item-details {
+        max-width: 100%;
+        max-height: 95vh;
+    }
+
+    .item-details-header {
+        padding: 12px 16px;
+    }
+
+    .item-details-header h3 {
+        font-size: 16px;
+        padding-right: 40px;
+    }
+
+    .item-details-close {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .item-details-content {
+        padding: 16px;
+    }
+
+    .item-details-actions {
+        padding: 12px 16px;
+        flex-direction: column;
+    }
+
+    .item-details button {
+        width: 100%;
+    }
+
+    .details-image {
+        max-height: 250px;
+    }
+}
+
+
+.notice {
+  background-color: #efefef; /* Light blue hint */
+  border-left: 5px solid #00994d; /* Google-style blue accent */
+  padding: 15px 20px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  width: fit-content;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+.notice p {
+  color: #333;
+  margin: 0;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.empty-state {
+  width: 100%;
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}

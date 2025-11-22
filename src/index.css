@@ -1,0 +1,152 @@
+*{
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* CSS Variables (moved from ui.css) */
+:root {
+	--bg-page: #f4f4f4;
+	--surface: #ffffff;
+	--text-main: #111;
+	--text-muted: #666;
+	--border: rgba(0, 0, 0, 0.06);
+	--shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+	--primary: #2f6fff;
+	--primary-hover: #255ded;
+}
+
+/* Global utility classes (moved from ui.css) */
+.page {
+	min-height: 100vh;
+	background: var(--bg-page);
+	padding: clamp(16px, 3vw, 24px);
+	color: var(--text-main);
+	box-sizing: border-box;
+	overflow-x: hidden;
+}
+
+.page h2 {
+	font-size: 24px;
+	font-weight: 600;
+	margin: 0 0 16px 0;
+}
+
+.card {
+	background: var(--surface);
+	border-radius: 12px;
+	border: 1px solid var(--border);
+	box-shadow: var(--shadow);
+}
+
+.card-body {
+	padding: 16px;
+}
+
+.grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+}
+
+.grid-col {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	box-shadow: var(--shadow);
+	padding: 16px;
+	flex: 1 1 220px;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+@media (min-width: 480px) {
+	.grid-col {
+		min-width: 220px;
+	}
+}
+
+.row-flex {
+	display: flex;
+	align-items: center;
+	padding: 12px 16px;
+	border-top: 1px solid var(--border);
+}
+
+.row-flex.header {
+	background: #fafafa;
+	font-weight: 600;
+	color: #333;
+	border-top: none;
+}
+
+.btn {
+	appearance: none;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	padding: 8px 14px;
+	font-size: 14px;
+	cursor: pointer;
+	transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
+}
+
+.btn:active {
+	transform: translateY(1px);
+}
+
+.btn-outline {
+	background: #fff;
+	border-color: rgba(0, 0, 0, 0.15);
+}
+
+.btn-outline:hover {
+	background: #fafafa;
+}
+
+.btn-danger {
+	background: #ff4d4f;
+	color: #fff;
+	border-color: #ff4d4f;
+}
+
+.btn-danger:hover {
+	background: #e64547;
+}
+
+.btn-small {
+	padding: 6px 10px;
+	font-size: 13px;
+}
+
+@media (max-width: 860px) {
+	.responsive-hide {
+		display: none;
+	}
+
+	.stack-on-mobile {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 8px;
+	}
+	
+	.page {
+		padding: 16px 12px;
+	}
+	
+	.grid-col {
+		flex: 1 1 100%;
+		min-width: 0;
+	}
+}

@@ -1,0 +1,71 @@
+.found-card {
+  width: 100%;
+  max-width: 280px;
+  min-width: 200px;
+  background-color: #c2c2c2;
+  border: 1px solid #ccc;
+  border-radius: 10px 10px 0 0;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin: 1rem;
+  cursor: pointer;
+  box-sizing: border-box;
+  flex: 1 1 200px;
+}
+
+.found-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.found-card.selected {
+  border: 2px solid #2f6fff;
+  box-shadow: 0 4px 15px rgba(47, 111, 255, 0.3);
+  background-color: #e8f0ff;
+}
+
+.found-card.selected:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 15px rgba(47, 111, 255, 0.4);
+}
+
+
+.found-card-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+
+.found-card-info {
+  padding: 12px;
+  background-color: #F0F2F5;
+  color: rgb(15, 15, 15);
+  text-align: left;
+  border-bottom: 5px solid #00994d;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.found-card.selected .found-card-info {
+  background-color: #d4e4ff;
+  border-bottom: 5px solid #2f6fff;
+}
+
+.found-card-info h3 {
+  margin: 5px 0;
+  font-size: 1.1rem;
+
+}
+
+.found-card-info p {
+  font-size: 0.9rem;
+}
+
+
+.found-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+}

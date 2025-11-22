@@ -1,0 +1,202 @@
+.admin-nav{
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 20px;
+    padding-left: 50px;
+    padding-right: 50px;
+    align-items: center;
+	margin: 2rem;
+	margin-top: 1rem;
+	border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.291);
+	border-bottom: none;
+}
+
+.links i{
+    padding-right: .5rem;
+}
+
+.brand {
+    font-weight: 700;
+    color: #111;
+}
+
+.links {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.link {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+    color: #333;
+    transition: background .15s ease, box-shadow .15s ease;
+}
+
+.link:hover {
+    background: #f6f8ff;
+    box-shadow: 0 2px 10px rgba(47, 111, 255, 0.15);
+}
+
+.link.active {
+    background: #3c3c3c;
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(47, 111, 255, 0.25);
+}
+
+
+
+#logout{
+    background-color: red;
+    color: white;
+}
+
+.account-dropdown {
+	position: relative;
+	bottom: 0;
+}
+
+.account-button {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 12px 16px;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	color: inherit;
+	font-size: 14px;
+	transition: background-color 0.2s;
+}
+
+.account-button:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+}
+
+.account-button span {
+	flex: 1;
+	text-align: left;
+	font-weight: 500;
+}
+
+.account-button .fa-chevron-down,
+.account-button .fa-chevron-up {
+	font-size: 12px;
+	opacity: 0.7;
+}
+
+.dropdown-menu {
+	position: absolute;
+	top: 100%;       
+	left: 0;
+	right: 0;
+	margin-top: 8px; 
+	background: white;
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	overflow: hidden;
+	z-index: 1000;
+}
+.dropdown-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	padding: 12px 16px;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	color: #333;
+	font-size: 14px;
+	text-align: left;
+	transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+	background-color: #f5f5f5;
+}
+
+.dropdown-item.logout {
+	color: #dc3545;
+}
+
+.dropdown-item.logout:hover {
+	background-color: #fff5f5;
+}
+
+.dropdown-divider {
+	height: 1px;
+	background-color: #e0e0e0;
+	margin: 4px 0;
+}
+
+/* --- HAMBURGER ICON --- */
+.burger {
+	display: none;
+	background: none;
+	border: none;
+	font-size: 24px;
+	cursor: pointer;
+	color: #333;
+}
+
+/* --- RESPONSIVE NAVIGATION --- */
+@media (max-width: 1200px) {
+	.admin-nav {
+		flex-wrap: wrap;
+		padding: 16px 24px;
+		margin: 1rem;
+		box-sizing: border-box;
+	}
+
+	.burger {
+		display: block;
+		z-index: 10;
+	}
+
+	.links {
+		display: none;
+		flex-direction: column;
+		width: 100%;
+		gap: 10px;
+		margin-top: 12px;
+	}
+
+	.links.show {
+		display: flex;
+	}
+
+	.link {
+		width: 100%;
+		text-align: center;
+		padding: 10px;
+		box-sizing: border-box;
+	}
+
+	.account-dropdown {
+		width: 100%;
+		margin-top: 12px;
+		text-align: center;
+	}
+}
+
+@media (max-width: 768px) {
+	.admin-nav {
+		padding: 12px 16px;
+		margin: 0.5rem;
+	}
+
+	.brand {
+		font-size: 1rem;
+	}
+
+	.burger {
+		font-size: 20px;
+	}
+}

@@ -1,0 +1,99 @@
+
+.home {
+    color: rgb(234, 234, 234);
+    padding: clamp(20px, 5vw, 50px);
+    padding-top: clamp(30px, 7vw, 70px);
+    background-image: 
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.66)),  
+        url("../../../imgs/background.jpeg");
+    background-size: cover;        
+    background-position: center;  
+    background-repeat: no-repeat;  
+    background-attachment: fixed;  
+          
+    overflow-x: hidden;
+    margin: clamp(0.5rem, 2vw, 2rem);
+    margin-top: clamp(0.5rem, 1vw, 1rem);
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.291);
+    height: fit-content;
+    box-sizing: border-box;
+}
+
+
+
+.message{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-left: 0px;
+    
+}
+
+.message h1{
+    font-size: clamp(2rem, 8vw, 5rem);
+    margin-bottom: 10px;
+    line-height: 1.2;
+} 
+p{
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    line-height: 1.5;
+} 
+
+#reportLost{
+    margin-top: clamp(15px, 3vw, 30px);
+    padding: clamp(12px, 2vw, 20px);
+    background-color: rgb(255, 255, 255);
+    width: fit-content;
+    max-width: 100%;
+    text-decoration: none;
+    color: rgb(0, 0, 0);
+    box-sizing: border-box;
+    display: inline-block;
+}
+
+.home .note{
+    color: black;
+    padding: clamp(20px, 4vw, 40px);
+    margin: clamp(20px, 10vw, 100px);
+    margin-bottom: clamp(25px, 5vw, 50px);
+    justify-content: center;
+    text-align: center;
+    background-color: rgb(195, 189, 189);
+    box-sizing: border-box;
+    width: calc(100% - clamp(40px, 20vw, 200px));
+    max-width: 100%;
+}
+
+.note span {
+    font-weight: bolder;
+}
+
+.home #tile{
+    text-align: center;
+}
+
+.home .dev{
+    display: flex;
+    justify-content: space-around;
+    margin-top: clamp(1.5rem, 3vw, 3rem);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.dev p{
+    text-shadow: 0 0 30px white;
+}
+
+@media (max-width: 768px) {
+    .home .note {
+        margin: 20px 10px;
+        width: calc(100% - 20px);
+        padding: 20px;
+    }
+    
+    .home .dev {
+        flex-direction: column;
+        align-items: center;
+    }
+}
