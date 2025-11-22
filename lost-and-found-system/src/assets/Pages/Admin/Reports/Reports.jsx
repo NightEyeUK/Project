@@ -71,32 +71,44 @@ export default function Reports() {
         );
     });
 
-    // Export to CSV
+    
     const exportToCSV = () => {
-        const headers = ['Timestamp', 'Performed By', 'User Email', 'User Role', 'Action Performed', 'Affected Item', 'Details'];
-        const csvContent = [
-            headers.join(','),
-            ...filteredLogs.map(log => [
-                formatTimestamp(log.timestamp),
-                `"${log.user}"`,
-                `"${log.userEmail || ''}"`,
-                `"${log.userRole || 'User'}"`,
-                `"${log.action}"`,
-                `"${log.item}"`,
-                `"${log.details || ''}"`
-            ].join(','))
-        ].join('\n');
+    // 1. Write the column titles
+    const headers = "Timestamp,Performed By,User Email,User Role,Action Performed,Affected Item,Details";
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `reports_${new Date().toISOString().slice(0, 10)}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
+    
+    const rows = filteredLogs.map(log => {
+        return [
+            formatTimestamp(log.timestamp),
+            log.user,
+            log.userEmail || "",
+            log.userRole || "User",
+            log.action,
+            log.item,
+            log.details || ""
+        ].join(",");
+    });
+
+    const csv = [headers, ...rows].join("\n");
+
+    // 4. Create a file from the CSV text
+    const blob = new Blob([csv], { type: "text/csv" });
+
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "reportngLostandFoundsTo.csv";
+
+   
+    a.click();
+
+    
+    URL.revokeObjectURL(url);
+};
+
+
 
     return (
         <div className="admin-page">
