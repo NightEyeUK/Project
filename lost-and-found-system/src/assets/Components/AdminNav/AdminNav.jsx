@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router";
 import "./admin-nav.css";
 import logo from "../../../imgs/logo.png";
 import { app, auth } from "../../../firebase.js";
-import { getDatabase, ref, get } from "firebase/database";
+import { getDatabase, ref, get, onValue } from "firebase/database";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import ChangePassword from "../ChangePassoword/ChangePassword.jsx";
 import EditProfile from "../EditProfile/EditProfile.jsx";
@@ -33,7 +33,19 @@ function AdminNav() {
 							data.email && user.email && data.email.toLowerCase() === user.email.toLowerCase()
 						);
 						if (userEntry) {
-							setUserData({ id: userEntry[0], ...userEntry[1] });
+							const userDataObj = { id: userEntry[0], ...userEntry[1] };
+							setUserData(userDataObj);
+							
+							// Check if user status is Suspended and log them out
+							if (userDataObj.status === 'Suspended') {
+								try {
+									await signOut(auth);
+									navigate('/admin');
+									alert('Your account has been suspended. You have been logged out.');
+								} catch (signOutError) {
+									console.error('Error signing out suspended user:', signOutError);
+								}
+							}
 						} else {
 							console.warn('User data not found in database for email:', user.email);
 						}
@@ -47,7 +59,38 @@ function AdminNav() {
 		});
 
 		return unsubscribe;
-	}, []);
+	}, [navigate]);
+
+	// Monitor user status in real-time and log out if status becomes Suspended
+	useEffect(() => {
+		if (!currentUser || !userData?.id) return;
+
+		const db = getDatabase(app);
+		const userRef = ref(db, `users/${userData.id}`);
+
+		const unsubscribe = onValue(userRef, (snapshot) => {
+			if (snapshot.exists()) {
+				const userStatus = snapshot.val().status;
+				if (userStatus === 'Suspended') {
+					// User status changed to Suspended, log them out
+					signOut(auth)
+						.then(() => {
+							navigate('/admin');
+							alert('Your account has been suspended. You have been logged out.');
+						})
+						.catch((error) => {
+							console.error('Error signing out suspended user:', error);
+						});
+				}
+			}
+		}, (error) => {
+			console.error('Error monitoring user status:', error);
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	}, [currentUser, userData?.id, navigate]);
 
 	// Close dropdown when clicking outside
 	useEffect(() => {
